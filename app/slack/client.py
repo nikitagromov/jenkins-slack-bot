@@ -6,12 +6,7 @@ import sys
 
 import aiohttp
 
-
-async def subscribe(token, handlers):
-    channel = asyncio.Queue()
-
-    asyncio.ensure_future(bot(token, channel))
-
+async def receiver(channel, token, handlers):
     while True:
         data = await channel.get()
         message = data['message']
@@ -34,6 +29,11 @@ async def subscribe(token, handlers):
                 send_func(json.dumps(response))
         else:
             print(message, file=sys.stderr)
+
+
+async def subscribe(token, handlers):
+    channel = asyncio.Queue()
+    await asyncio.gather(*(bot(token, channel), receiver(channel, token, handlers)))
 
 
 async def api_call(method, token, data=None):
